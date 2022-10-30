@@ -6,42 +6,47 @@
 #include "collision.h"
 
 using namespace physics;
+
 namespace collision {
 
-    void check_collisions (const std::vector<PhysicsObject*>& objects) {
+    struct Cdata {
 
-        std::set<std::pair<PhysicsObject*, PhysicsObject*>> pairs;
-        get_unique_pairs(objects, pairs);
+    };
 
+    //Look through each unique pair of objects for object vector, returns a list of collisions
+    void check_collisions (const std::vector<PhysicsObject*>& obj_vec, std::vector<PhysObject*>& coll_vec) {
+        std::set<std::pair<PhysObj*, PhysObj*>> pairs;
+        get_unique_pairs(obj_vec, pairs);
         for (auto pair : pairs) {
-            if (broad_check(pair) && narrow_check(pair)) {
-                CollisionData cdata;
-                //get_collision_data(pair, cdata)
-                //collisions.push_back(cdata);
-            }
+            Cdata cdata;
+            if (check_collision(pair, cdata))
+                coll_vec.push_back(cdata);
         }
     }
 
-    void get_unique_pairs (
-        const std::vector<PhysicsObject*>& objects, 
-        std::set<std::pair<PhysicsObject*, PhysicsObject*>>& pairs
-    ) {
-        for (auto obj_a : objects) {
-            for (auto obj_b : objects) {
-                std::pair<PhysicsObject*, PhysicsObject*> pair;
+    void get_unique_pairs (const std::vector<PhysObj*>& obj_vec, std::set<std::pair<PhysObj*,PhysObj*>>& pairs) {
+        for (auto obj_a : obj) {
+            for (auto obj_b : obj) {
+                std::pair<PhysObj*, PhysObj*> pair;
                 pairs.insert(pair);
             }
         }
     }
 
-    bool broad_check (std::pair<PhysicsObject*, PhysicsObject*>& pair) {
+    bool check_collision (const std::pair<PhysObj*,PhysObj*>& pair, Cdata& cdata) {
+        if (broad_check(pair, cdata))
+                return narrow_check(pair, cdata);
+        return false;
+    }
+
+    bool broad_check (std::pair<PhysObj*, PhysObj*>& pair) {
         return true;
     }
 
     /*
      * Implemented using the GJK algorithm
      */
-    bool narrow_check (std::pair<PhysicsObject*, PhysicsObject*>& pair) {
+    bool narrow_check (std::pair<PhysObj*, PhysObj*>& pair) {
 
         shapes::CollisionShape* shape_a = pair.first->shape;
         shapes::CollisionShape* shape_b = pair.second->shape;
